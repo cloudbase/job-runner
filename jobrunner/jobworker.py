@@ -39,7 +39,11 @@ LOG = logging.getLogger(__name__)
 def exec_proc(args):
     LOG.info("Invoking process: %s" % args)
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # Set the job's path as current dir
+    p = subprocess.Popen(args,
+                         cwd=os.path.dirname(os.path.abspath(args[0])), 
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     out, err = p.communicate()
     return (out, err, p.returncode)
 
