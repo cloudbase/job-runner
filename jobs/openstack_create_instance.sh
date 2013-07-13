@@ -22,7 +22,7 @@ EXT_NET_NAME=ext_net
 echo "Downloading image from url: $IMAGE_URL"
 
 IMAGE_PATH_TMP="$IMAGE_PATH"_tmp
-/usr/bin/wget -O - $IMAGE_URL | bunzip2 > $IMAGE_PATH_TMP
+/usr/bin/wget --quiet -O - $IMAGE_URL | bunzip2 > $IMAGE_PATH_TMP
 
 echo "Converting image to VHD"
 
