@@ -61,7 +61,7 @@ def new_job():
     request_data = flask.request.json
 
     auth_key = request_data['auth_key']
-    if auth_key != 'change_me_asap_please':
+    if auth_key != CONF.jobpublisher.auth_key:
         raise Exception('The provided auth_key is not valid')
 
     job_id = str(uuid.uuid4()) 
