@@ -16,32 +16,38 @@
 #    under the License.
 
 import flask
-import zmq
 import json
+import sys
 import uuid
+import zmq
 
-from zmq import devices
+from oslo.config import cfg
+from jobrunner.openstack.common import log as logging
+
+opts = [
+    cfg.StrOpt('auth_key', default='', help='Key used to authenticate client requests'),
+    cfg.StrOpt('queue_push_uri', default='tcp://127.0.0.1:4001', help='Zmq queue push uri'),
+    cfg.IntOpt('http_port', default=4000, help='Http listen port'),
+]
+
+CONF = cfg.CONF
+CONF.register_opts(opts, 'jobpublisher')
+
+LOG = logging.getLogger(__name__)
 
 
 app = flask.Flask(__name__)
 
 context = None
 socket = None
-pd = None
 
 def bind():
     global socket, context, pd
 
-    #start_queue()
-
     context = zmq.Context()
-    #socket = context.socket(zmq.PUB)
     socket = context.socket(zmq.PUSH)
-    #socket = context.socket(zmq.REQ)
-    socket.connect("tcp://127.0.0.1:4001")
+    socket.connect(CONF.jobpublisher.queue_push_uri)
     socket.setsockopt(zmq.IDENTITY, 'pub')
-    #socket.setsockopt(zmq.SNDHWM, 100)
-    #socket.bind("tcp://*:4001")
 
 def enqueue_job(data):
     global socket
@@ -49,15 +55,6 @@ def enqueue_job(data):
         bind()
 
     socket.send_json(data)
-
-def start_queue():
-    pd = devices.ProcessDevice(zmq.QUEUE, zmq.ROUTER, zmq.DEALER)
-    pd.bind_in('tcp://*:4001')
-    pd.bind_out('tcp://*:4002')
-    pd.setsockopt_in(zmq.IDENTITY, 'ROUTER')
-    pd.setsockopt_out(zmq.IDENTITY, 'DEALER')
-    pd.start()
-
 
 @app.route('/jobs/new', methods = ['POST'])
 def new_job():
@@ -80,7 +77,15 @@ def new_job():
 
     return json.dumps({'job_id':job_id})
 
-if __name__ == '__main__':
-    app.run(debug = True, port=4000)
+def main():
+    CONF(sys.argv[1:])
+    logging.setup('jobpublisher')
 
+    if not CONF.jobpublisher.auth_key:
+        raise Exception("auth_key not set")
+
+    app.run(port=CONF.jobpublisher.http_port)
+
+if __name__ == '__main__':
+    main()
 

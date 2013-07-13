@@ -15,18 +15,36 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
 import zmq
 
+from oslo.config import cfg
+from jobrunner.openstack.common import log as logging
+
+opts = [
+    cfg.StrOpt('queue_pull_uri', default='tcp://127.0.0.1:4001', help='Zmq pull queue uri'),
+    cfg.StrOpt('queue_push_uri', default='tcp://*:4002', help='Zmq push queue uri'),
+]
+
+CONF = cfg.CONF
+CONF.register_opts(opts, 'jobqueue')
+
+LOG = logging.getLogger(__name__)
+
+
 def main():
+    CONF(sys.argv[1:])
+    logging.setup('jobqueue')
+
     context = zmq.Context(1)
 
     # Socket facing clients
     frontend = context.socket(zmq.PULL)
-    frontend.bind("tcp://*:4001")
+    frontend.bind(CONF.jobqueue.queue_pull_uri)
 
     # Socket facing services
     backend  = context.socket(zmq.PUSH)
-    backend.bind("tcp://*:4002")
+    backend.bind(CONF.jobqueue.queue_push_uri)
 
     zmq.device(zmq.QUEUE, frontend, backend)
 

@@ -18,8 +18,22 @@
 import json
 import os
 import subprocess
+import sys
 import urllib2
 import zmq
+
+from oslo.config import cfg
+from jobrunner.openstack.common import log as logging
+
+opts = [
+    cfg.ListOpt('jobs', default='', help='job_name:path comma separated values'),
+    cfg.StrOpt('queue_pull_uri', default='tcp://127.0.0.1:4002', help='Zmq pull queue uri'),
+]
+
+CONF = cfg.CONF
+CONF.register_opts(opts, 'jobworker')
+
+LOG = logging.getLogger(__name__)
 
 
 def exec_proc(args):
@@ -31,15 +45,19 @@ def post_data(url, data):
    r = urllib2.Request(url, data=json.dumps(data))
    urllib2.urlopen(r)
 
+def _get_jobs_dict():
+   return dict([[a.strip() for a in v.split(':')]
+                 for v in CONF.jobworker.jobs])
+
 def exec_job(data):
-    #get job
-    jobs = { 'default' : 'test_job.sh' }
+    jobs = _get_jobs_dict()
+    job_name = data['job_name']
+    job_path = jobs.get(job_name, None)
+    if not job_path:
+        raise Exception('Job %s not defined' % job_name)
 
-    args = [jobs[data['job_name']]] + [data['job_id']] + data['job_args']    
+    args = [job_path, data['job_id']] + data['job_args']    
     out, err = exec_proc(args)
-
-    print out
-    print err
 
     return_url = data.get('return_url', None)
     if return_url:
@@ -57,7 +75,7 @@ def get_messages():
     socket = context.socket(zmq.PULL)
     socket.setsockopt(zmq.IDENTITY, 'sub')
 
-    socket.connect("tcp://127.0.0.1:4002")
+    socket.connect(CONF.jobworker.queue_pull_uri)
 
     while True:
         try:
@@ -69,5 +87,15 @@ def get_messages():
     socket.close()
     context.term()
 
-if __name__ == '__main__':
+def main():
+    CONF(sys.argv[1:])
+    logging.setup('jobworker')
+
+    jobs = _get_jobs_dict()
+    if not jobs:
+        LOG.warning("No jobs defined!")
+
     get_messages()
+
+if __name__ == '__main__':
+    main()
