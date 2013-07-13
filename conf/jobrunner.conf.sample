@@ -1,3 +1,8 @@
+[DEFAULT]
+
+verbose=True
+# debug=True
+
 [jobpublisher]
 # auth_key = set_your_key_here
 
