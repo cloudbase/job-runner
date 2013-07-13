@@ -37,11 +37,14 @@ LOG = logging.getLogger(__name__)
 
 
 def exec_proc(args):
+    LOG.info("Invoking process: %s" % args)
+
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    return (out, err)
+    return (out, err, p.returncode)
 
 def post_data(url, data):
+   LOG.info('Posting data %s to return url %s' % (data, url))
    r = urllib2.Request(url, data=json.dumps(data))
    urllib2.urlopen(r)
 
@@ -57,12 +60,22 @@ def exec_job(data):
         raise Exception('Job %s not defined' % job_name)
 
     args = [job_path, data['job_id']] + data['job_args']    
-    out, err = exec_proc(args)
+    out, err, returncode = exec_proc(args)
+
+    msg = 'Job return code: %s' % returncode
+    if returncode:
+        LOG.warning(msg)
+    else:
+        LOG.info(msg)
+
+    LOG.debug('Job stdout:%s' % out)
+    LOG.debug('Job stderr:%s' % out)
 
     return_url = data.get('return_url', None)
     if return_url:
         return_data = {}
         return_data['job_id'] = data['job_id']
+        return_data['job_return_code'] = returncode
         if out:
             return_data['out'] = out
         if err:
@@ -82,7 +95,8 @@ def get_messages():
             data = socket.recv_json()
             exec_job(data)
         except Exception, ex:
-           print ex
+           LOG.warning('Job execution failed')
+           LOG.exception(ex)
 
     socket.close()
     context.term()
