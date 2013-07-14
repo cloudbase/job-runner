@@ -1,5 +1,5 @@
-job-runner
-==========
+Cloudbase Job-Runner
+====================
 
 Lightweight application created for running jobs on demand with a RESTful API interface and a scalable backend. Job queues are based on Zeromq.
 
