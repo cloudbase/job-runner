@@ -28,6 +28,7 @@ opts = [
     cfg.StrOpt('auth_key', default='', help='Key used to authenticate client requests'),
     cfg.StrOpt('queue_push_uri', default='tcp://127.0.0.1:4001', help='Zmq queue push uri'),
     cfg.IntOpt('http_port', default=4000, help='Http listen port'),
+    cfg.StrOpt('http_host', default='127.0.0.1', help='Http listen host'),
 ]
 
 CONF = cfg.CONF
@@ -84,7 +85,9 @@ def main():
     if not CONF.jobpublisher.auth_key:
         raise Exception("auth_key not set")
 
-    app.run(port=CONF.jobpublisher.http_port)
+    app.run(host=CONF.jobpublisher.http_host,
+            port=CONF.jobpublisher.http_port,
+            debug=False)
 
 if __name__ == '__main__':
     main()
