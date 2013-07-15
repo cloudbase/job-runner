@@ -73,6 +73,7 @@ def new_job():
     data['job_name'] = request_data.get('job_name', 'default')
     data['job_args'] = request_data.get('job_args', [])
     data['return_url'] = request_data.get('return_url', None)
+    data['results_email'] = request_data.get('results_email', None)
     data['job_id'] = job_id
 
     enqueue_job(data)

@@ -22,3 +22,10 @@ verbose=True
 # Corresponding to jobworker.queue_pull_uri
 # queue_push_uri = tcp://*:4002
 
+[smtp]
+
+# host = localhost
+# auth_username = "SMTP authentication username"
+# auth_password = "SMTP authentication password"
+# email_from = your@email.com
+

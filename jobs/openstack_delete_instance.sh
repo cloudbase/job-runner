@@ -7,6 +7,9 @@ set -o pipefail
 JOB_ID=$1
 VM_ID=$2
 
+# Required to avoid some quantum client warning messages
+EDITOR=vim
+
 source keystone_vars
 
 echo "Getting the port id for VM: $VM_ID"

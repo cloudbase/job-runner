@@ -24,6 +24,7 @@ import zmq
 
 from oslo.config import cfg
 from jobrunner.openstack.common import log as logging
+from jobrunner.utils import smtp
 
 opts = [
     cfg.ListOpt('jobs', default='', help='job_name:path comma separated values'),
@@ -79,7 +80,8 @@ def exec_job(data):
     LOG.debug('Job stderr:%s' % out)
 
     return_url = data.get('return_url', None)
-    if return_url:
+    results_email = data.get('results_email', None)
+    if return_url or results_email:
         return_data = {}
         return_data['job_id'] = data['job_id']
         return_data['job_return_code'] = returncode
@@ -88,7 +90,20 @@ def exec_job(data):
         if err:
             return_data['err'] = err
 
-        post_data(return_url, return_data)
+        if return_url:
+            try:
+                post_data(return_url, return_data)
+            except Exception, ex:
+                LOG.error("HTTP job results call failed for URL: %s" % return_url)
+                LOG.exception(ex)
+
+        if results_email:
+            try:
+                LOG.debug('Sending job results email to: %s' % results_email)
+                smtp.send_email(None, results_email, None, str(return_data)) 
+            except Exception, ex:
+                LOG.error("Failed to send email to: %s" % results_email)
+                LOG.exception(ex)
 
 def get_messages():
     context = zmq.Context()

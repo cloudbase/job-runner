@@ -4,7 +4,13 @@
 set -e 
 set -o pipefail
 
+# Required to avoid some quantum client warning messages
+export EDITOR=vim
+
 source ./keystone_vars
+
+# Required to avoid some quantum client warning messages
+export EDITOR=vim
 
 JOB_ID=$1
 IMAGE_URL=$2
