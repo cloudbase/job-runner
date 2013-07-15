@@ -74,5 +74,6 @@ echo "Associating floating ip"
 
 /usr/bin/quantum floatingip-associate $FLOAT_IP_ID $PORT_ID > /dev/null
 
+echo VM_ID=$VM_ID
 echo FLOATING_IP=$FLOAT_IP
 
