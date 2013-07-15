@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# terminate if a command fails
+set -e
+set -o pipefail
+
 JOB_ID=$1
 VM_ID=$2
 
