@@ -54,6 +54,7 @@ def enqueue_job(data):
     if not socket:
         bind()
 
+    LOG.info('Enqueuing job: %s' % data)
     socket.send_json(data)
 
 @app.route('/jobs/new', methods = ['POST'])

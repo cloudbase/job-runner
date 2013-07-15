@@ -37,7 +37,7 @@ LOG = logging.getLogger(__name__)
 
 
 def exec_proc(args):
-    LOG.info("Invoking process: %s" % args)
+    LOG.debug("Invoking process: %s" % args)
 
     # Set the job's path as current dir
     p = subprocess.Popen(args,
@@ -57,13 +57,16 @@ def _get_jobs_dict():
                  for v in CONF.jobworker.jobs])
 
 def exec_job(data):
+    job_id = data['job_id']
+    LOG.info('Processing job: %s' % job_id)
+
     jobs = _get_jobs_dict()
     job_name = data['job_name']
     job_path = jobs.get(job_name, None)
     if not job_path:
         raise Exception('Job %s not defined' % job_name)
 
-    args = [job_path, data['job_id']] + data['job_args']    
+    args = [job_path, job_id] + data['job_args']    
     out, err, returncode = exec_proc(args)
 
     msg = 'Job return code: %s' % returncode
