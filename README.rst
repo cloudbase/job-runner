@@ -18,11 +18,13 @@ Setup::
  python setup.py install
 
  cp scripts/* /etc/init.d/
- useradd jobrunner
+ useradd -M jobrunner
  mkdir /var/log/jobrunner
  chown jobrunner.jobrunner /var/log/jobrunner/ 
  mkdir /var/run/jobrunner
- chown jobrunner.jobrunner /var/run/jobrunner/ 
+ chown jobrunner.jobrunner /var/run/jobrunner/
+ mkdir /etc/jobrunner
+ cp conf/jobrunner.conf.sample /etc/jobrunner/jobrunner.conf
 
 Start the services based on your configuration. For example:
 
